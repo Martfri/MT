@@ -5,8 +5,8 @@ created based on the data from the database. Correctness tests have shown that o
 
 # Usage
 Excel documents can be uploaded to the web application. The document needs to have an additional sheet "Formulas" containing the Excel formulas which need to be available in the application.
-The documentation is outlined in the master thesis.
-A template for the Excel document is given in... 
+The documentation is outlined in Documentation/MT_Martin_Frick.pdf
+A template for the Excel document is given in Templates/spreadsheet_Template.xlsx 
 
 # Architecture
 The web application follows the MVC architecture. Following this pattern, the spreadsheet document serves as Model from which a data model is generated as the internal representation of the Model. The Controller handles user requests and updates the Model if needed. Also, the Controller passes the model to the Views to render it to the user.
