@@ -1,0 +1,89 @@
+﻿@using MT.Models
+@model System.Data.DataTable
+@using System.Data
+
+
+
+<div class="text-center">
+
+
+ <table class="table table-striped table-sm">
+        <thead>
+
+        <tr>
+            @foreach (DataColumn column in Model.Columns)
+            {
+                    @if (@column.ColumnName == "ID" || @column.ColumnName == "datasource") { continue; }
+
+                <th>@column.ColumnName</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (DataRow row in Model.Rows)
+        {
+            <tr>
+                @foreach (DataColumn column in Model.Columns)
+                {
+                        @if (@column.ColumnName == "ID" || @column.ColumnName == "datasource") { continue; }
+
+                    <td>@row[column]</td>
+                }
+                           <td>
+                        @Html.ActionLink("Edit |", "Edit", new {name = row.Field<int>("ID"), tablename = Model.TableName })
+                        @Html.ActionLink("Delete |", "DeleteRow", new {id = row.Field<int>("ID"), tablename = Model.TableName })
+                        @Html.ActionLink("Insert", "Insert", new {tablename = Model.TableName })
+
+
+@*                        <a href="" onclick="Delete(name = row.ItemArray.ElementAt(0))">Delete</a>
+*@            </td>
+            </tr>
+
+        }
+    </tbody>
+</table>  
+</div>
+
+ <div class="row mt-3"> 
+
+ 
+    <form asp-action="TableView" method="get" style="width: auto; margin: 0 5%;">
+   
+       <button type="submit">Back</button> 
+
+    </form>
+
+</div>
+
+<script>
+    $(function () {
+        $('#Delete').DataTable();
+    });
+    function Delete(name) {
+        var txt;
+        var r = confirm("Are you sure you want to Delete?");
+        if (r == true) {
+
+            $.ajax(
+                {
+                    type: "POST",
+                    url: '@Url.Action("Delete", "Table")',
+                    data: {
+                        name: name
+                    },
+                    error: function (result) {
+                        alert("error");
+                    },
+                    success: function (result) {
+                        if (result == true) {
+                            var baseUrl = "/Table/TableView";
+                            window.location.reload();
+                        }
+                        else {
+                            alert("There is a problem, Try Later!");
+                        }
+                    }
+                });
+        }
+    }
+</script>

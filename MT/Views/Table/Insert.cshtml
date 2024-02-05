@@ -1,0 +1,57 @@
+﻿@using MT.Models
+@model System.Data.DataTable
+@using System.Data
+
+
+<!-- Main content -->
+<div class="container align-content-center">
+    <section class="content container-fluid">
+        <!-- Horizontal Form -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Insert new row to Table @Model.TableName</h3>
+            </div>
+            <!-- /.box-header -->
+            <!-- form start -->
+
+            <form class="form-horizontal" method="post" action="InsertRow">
+
+                @foreach (DataColumn column in Model.Columns)
+                {
+                    @if (@column.ColumnName == "ID" || @column.ColumnName == "datasource") { continue; }
+                    else if (column.DataType == typeof(string)){
+                        <input type="text" name="@column.ColumnName" placeholder="@column.ColumnName" class="form-control"/>
+
+
+                    }
+                                        else if (column.DataType == typeof(string)){
+                        <input type="date" name="@column.ColumnName" placeholder="@column.ColumnName" class="form-control" />
+
+                    }
+                                                            else {
+                        <input type="number" name="@column.ColumnName" placeholder="@column.ColumnName" class="form-control" />
+                    }             
+                                 
+
+
+
+
+
+                    
+                }
+                <input type="hidden" name="TableName" value="@Model.TableName" />
+
+
+                <button type="submit" class="btn btn-default">Cancel</button>
+                    <button type="submit" class="btn btn-info pull-right">Update</button>
+
+            </form>
+            
+            
+        </div>
+        <!-- /.box -->
+    </section>
+    <div class="box-footer">
+
+    </div>
+</div>

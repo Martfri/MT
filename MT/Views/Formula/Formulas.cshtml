@@ -1,0 +1,183 @@
+﻿@using MT.Models
+@model IEnumerable<Formula>
+@{
+
+    TempData.Keep();
+}
+
+
+<div class="text-center">
+    <h2>Detected formulas</h2>
+    <div class="table-responsive">
+        <table id="edit" class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Formula name</th>
+                    <th scope="col">Result</th>
+
+                </tr>
+            </thead>
+            <tbody>
+@*                @if (Model == null)
+                {
+                    <div class="alert">
+                        <strong>Upload an Excel document first!</strong>
+                    </div>
+                }
+                else
+                {*@
+
+
+    @foreach (Formula f in Model)
+    {
+                        @if(f.name != null)
+
+                        {
+                        <tr>
+
+                                                    <td> @f.name</td>
+@*                    <td> @f.formula</td>
+*@@*                    <td>@Html.("Calculate", "Calculate", new {name = f.name})</td>
+                    *@
+                            <td> @f.result</td>
+
+                    </tr>
+                        }
+
+
+                    }
+@*                }
+*@            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+@if (ViewBag.Message != null)
+{
+    <div class ="alert success">
+        <strong>ViewBag.Message</strong>
+    </div>
+    
+}
+
+@*<td> <a href="" onclick="CalculateFormula()">Calculate</a></td>
+*@
+
+<div class="row mt-3">
+
+
+    <form asp-action="CalculateFormulas" method="get" style="width: auto; margin: 0 5%;">
+
+        <button type="submit">Recalculate Formulas</button>
+
+    </form>
+
+</div>
+
+
+
+
+
+
+<script type="module">
+    $(function () {
+        $('#CalculateFormula').DataTable();
+    });
+    
+    //import HyperFormula from 'hyperformula';
+    //import HyperFormula from 'hyperformula/dist/hyperformula.full.min.js';
+    //import HyperFormula from 'https://cdn.jsdelivr.net/npm/hyper-formula@2.6.0/dist/hyper-formula.min.mjs';
+    //const HyperFormula = require('hyperformula/dist/hyperformula.full.min.js');
+
+    //const sql = require('mssql');
+    //import sql from 'mssql';
+    import sql from 'mssql/msnodesqlv8.js';
+
+    // Database configuration with Windows Authentication for local server
+
+    const config = {
+        server: '(localdb)\\mssqllocaldb',
+        database: 'MT',
+        driver: 'msnodesqlv8',
+        options: {
+            trustedConnection: true,
+            useNamedParameters: true,
+            enableArithAbort: true,
+            options: {
+                trustedConnection: true,
+                encrypt: false,
+                enableArithAbort: true,
+            },
+        },
+        pool: {
+            max: 10,
+            min: 0,
+            idleTimeoutMillis: 30000,
+        },
+    };
+
+
+
+
+
+    // Function to insert data into the database
+    async function insertData(data) {
+        try {
+            // Connect to the database
+            await sql.connect(config);
+
+            // Iterate over each row in the data array and insert into the database
+            for (const row of data) {
+                const { Name, Result } = row;
+
+                // Insert data into the database
+                await sql.query`UPDATE Formulas SET Result = ${Result} WHERE Name = ${Name}`;
+            }
+
+            return { success: true, message: 'Data inserted successfully' };
+        } catch (error) {
+            console.error(error);
+            return { success: false, message: 'Error updating data in the database' };
+        } finally {
+            // Close the database connection
+            await sql.close();
+        }
+    }
+
+    export function CalculateFormula(callback = handleResult) {
+        const someData = { "Arsenal@localhost.com": [["", "", "", "", "", ""]], "Formulas": [["Formula", "Name"], ["=AVERAGE('Arsenal@localhost.com'!F:F)", "Durchschnittsgehalt"]] };
+        //const tableData = generateTableData(someData);
+        insertData(someData);
+        return tableData;
+    }
+
+    function handleResult(result) {
+        console.log(result);
+    }
+
+    function generateTableData(someData) {
+
+        console.log(`%c Using HyperFormula ${HyperFormula.version}`, 'color: blue; font-weight: bold');
+        const hf = HyperFormula.buildFromSheets(someData, { useColumnIndex: true, licenseKey: "gpl-v3", maxRows: 200000 });
+
+        const data = [];
+
+        const sheetID = hf.getSheetId('Formulas');
+        var row = 1;
+
+        while (hf.getCellValue({ sheet: sheetID, col: 0, row: row }) !== null) {
+            // Create a new row to add
+            const newRow = { Name: hf.getCellValue({ sheet: sheetID, col: 1, row: row }), Result: hf.getCellValue({ sheet: sheetID, col: 0, row: row }) };
+
+            data.push(newRow);
+            row++;
+        }
+        return data;
+    }
+</script>
+
+
+ 
+

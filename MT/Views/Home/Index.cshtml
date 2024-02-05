@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    TempData.Keep();
+}
+
+<form enctype="multipart/form-data" method="post" asp-controller="Home" asp-action="ImportExcelFile", style="width: auto; margin: 0 5%;">
+    <dl>
+        <dt>
+            <label>Upload Excel:</label>
+        </dt>
+        <dd>
+            <input type="file" name="FormFile" id="FormFile" capture = "english", accept="xls">
+
+        </dd>
+    </dl>
+    <input class="btn" type="submit" value="Upload" />
+</form>
+<br/>
+<div class="">
+    <!--Show Message if file is uploaded or not-->
+    @ViewBag.Message
+</div>
