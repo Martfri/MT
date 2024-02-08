@@ -53,7 +53,6 @@ function handleResult(result) {
 
 function generateTableData(data) {
 
-    console.log(`%c Using HyperFormula ${HyperFormula.version}`, 'color: blue; font-weight: bold');
     const hf = HyperFormula.buildFromSheets(data, { useColumnIndex: true, licenseKey: "gpl-v3", maxRows: 200000 });
 
     const results = [];
@@ -64,8 +63,6 @@ function generateTableData(data) {
     while (hf.getCellValue({ sheet: sheetID, col: 0, row: row }) !== null) {
         // Create a new row to add
         const newRow = { Name: hf.getCellValue({ sheet: sheetID, col: 1, row: row }), Result: hf.getCellValue({ sheet: sheetID, col: 0, row: row }) };
-
-        console.log(`${hf.getCellValue({ sheet: sheetID, col: 0, row: row })}`);
 
         results.push(newRow);
         row++;

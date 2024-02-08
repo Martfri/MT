@@ -37,9 +37,9 @@
                         <td>@Html.ActionLink("Preview |", "Preview", new {t.name}) 
                         
 @*                                @Html.ActionLink("Edit |", "Edit", new {name = t.name})
-*@                        
-                        <a href="" onclick="Delete('@t.name')">Delete</a>                    
-                    </td>
+*@
+                         @Html.ActionLink("Delete", "Delete", new {t.name })
+                            </td>
                     
                 </tr>
               } }

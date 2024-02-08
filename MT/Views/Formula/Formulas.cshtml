@@ -15,6 +15,7 @@
                     <th scope="col">Formula name</th>
                     <th scope="col">Result</th>
 
+
                 </tr>
             </thead>
             <tbody>
@@ -35,13 +36,13 @@
                         {
                         <tr>
 
-                                                    <td> @f.name</td>
-@*                    <td> @f.formula</td>
-*@@*                    <td>@Html.("Calculate", "Calculate", new {name = f.name})</td>
-                    *@
+                            <td> @f.name</td>
                             <td> @f.result</td>
+                            <td>
+                                @Html.ActionLink("Delete", "Delete", new {name = f.name })
+                            </td>
 
-                    </tr>
+                        </tr>
                         }
 
 
@@ -76,105 +77,38 @@
 
 </div>
 
+ <script>
+        $(function () {
+            $('#Delete').DataTable();
+        });
+    function Delete(name) {
+        var txt;
+        var r = confirm("Are you sure you want to Delete?");
+        if (r == true) {
 
-
-
-
-
-<script type="module">
-    $(function () {
-        $('#CalculateFormula').DataTable();
-    });
-    
-    //import HyperFormula from 'hyperformula';
-    //import HyperFormula from 'hyperformula/dist/hyperformula.full.min.js';
-    //import HyperFormula from 'https://cdn.jsdelivr.net/npm/hyper-formula@2.6.0/dist/hyper-formula.min.mjs';
-    //const HyperFormula = require('hyperformula/dist/hyperformula.full.min.js');
-
-    //const sql = require('mssql');
-    //import sql from 'mssql';
-    import sql from 'mssql/msnodesqlv8.js';
-
-    // Database configuration with Windows Authentication for local server
-
-    const config = {
-        server: '(localdb)\\mssqllocaldb',
-        database: 'MT',
-        driver: 'msnodesqlv8',
-        options: {
-            trustedConnection: true,
-            useNamedParameters: true,
-            enableArithAbort: true,
-            options: {
-                trustedConnection: true,
-                encrypt: false,
-                enableArithAbort: true,
-            },
-        },
-        pool: {
-            max: 10,
-            min: 0,
-            idleTimeoutMillis: 30000,
-        },
-    };
-
-
-
-
-
-    // Function to insert data into the database
-    async function insertData(data) {
-        try {
-            // Connect to the database
-            await sql.connect(config);
-
-            // Iterate over each row in the data array and insert into the database
-            for (const row of data) {
-                const { Name, Result } = row;
-
-                // Insert data into the database
-                await sql.query`UPDATE Formulas SET Result = ${Result} WHERE Name = ${Name}`;
-            }
-
-            return { success: true, message: 'Data inserted successfully' };
-        } catch (error) {
-            console.error(error);
-            return { success: false, message: 'Error updating data in the database' };
-        } finally {
-            // Close the database connection
-            await sql.close();
+            $.ajax(
+                {
+                    type: "POST",
+                    url: '@Url.Action("Delete", "Formula")',
+                    data: {
+                        name: name
+                    },
+                    error: function (result) {
+                        alert("error");
+                    },
+                    success: function (result) {
+                        if (result == true) {
+                            var baseUrl = "/Formula/Formulas";
+                            window.location.reload();
+                        }
+ 
+                        }
+                        else {
+                            alert("There is a problem, Try Later!");
+                        }
+                    }
+                });
         }
-    }
-
-    export function CalculateFormula(callback = handleResult) {
-        const someData = { "Arsenal@localhost.com": [["", "", "", "", "", ""]], "Formulas": [["Formula", "Name"], ["=AVERAGE('Arsenal@localhost.com'!F:F)", "Durchschnittsgehalt"]] };
-        //const tableData = generateTableData(someData);
-        insertData(someData);
-        return tableData;
-    }
-
-    function handleResult(result) {
-        console.log(result);
-    }
-
-    function generateTableData(someData) {
-
-        console.log(`%c Using HyperFormula ${HyperFormula.version}`, 'color: blue; font-weight: bold');
-        const hf = HyperFormula.buildFromSheets(someData, { useColumnIndex: true, licenseKey: "gpl-v3", maxRows: 200000 });
-
-        const data = [];
-
-        const sheetID = hf.getSheetId('Formulas');
-        var row = 1;
-
-        while (hf.getCellValue({ sheet: sheetID, col: 0, row: row }) !== null) {
-            // Create a new row to add
-            const newRow = { Name: hf.getCellValue({ sheet: sheetID, col: 1, row: row }), Result: hf.getCellValue({ sheet: sheetID, col: 0, row: row }) };
-
-            data.push(newRow);
-            row++;
-        }
-        return data;
     }
 </script>
 

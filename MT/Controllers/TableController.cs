@@ -20,11 +20,9 @@ namespace MT.Controllers
         // Get table view
         [Authorize]
         [HttpGet]
-        public IActionResult TableView(IFormCollection form)
+        public IActionResult TableView()
         {
-            TempData.Keep("tables");
-            List<Tableinfo> tables = new List<Tableinfo>();
-            tables = TempData.Get<List<Tableinfo>>("tables");
+            List<Tableinfo> tables = _dbService.GetTableInfoFromDatabase();
             return View(tables);
         }     
 
@@ -76,14 +74,13 @@ namespace MT.Controllers
             _dbService.DeleteRowById(tablename, id);
             var table = _dbService.RetrieveTable(tablename);
 
-
-            var v = datasource[datasource.Keys.FirstOrDefault()];
+            var value = datasource[datasource.Keys.FirstOrDefault()];
             var newdic = new List<Tuple<int, int, string, string>>();
             var counter = 0;
 
             foreach (DataColumn c in table.Columns)
             {
-                Tuple<int, int, string, string> myTuple = new Tuple<int, int, string, string>(v[0] - 1, v[1] - 1 + counter, "", datasource.Keys.FirstOrDefault());
+                Tuple<int, int, string, string> myTuple = new Tuple<int, int, string, string>(value[0] - 1, value[1] - 1 + counter, "", datasource.Keys.FirstOrDefault());
                 newdic.Add(myTuple);
                 counter++;
             }
@@ -190,21 +187,20 @@ namespace MT.Controllers
         }
 
         // Delete a table from the preview 
-        [HttpPost]
-        public bool Delete(string name)
+        [HttpGet]
+        public IActionResult Delete(string name)
         {
             try
             {
-                var tables = TempData.Get<List<Table>>("tables");
-                tables.Remove(tables.Where(t => t.tableName == name).First());
-                TempData.Put("tables", tables);
-
-                return true;
+                _dbService.DeleteRowFromMetadata(name);
+                _dbService.DeleteTable(name);
             }
             catch (Exception)
             {
-                return false;
             }
+
+            List<Tableinfo> tables = _dbService.GetTableInfoFromDatabase();
+            return View("TableView",tables);
         }
 
         // Export data model to a JSON file

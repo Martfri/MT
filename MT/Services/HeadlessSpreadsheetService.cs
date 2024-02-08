@@ -51,7 +51,7 @@ namespace MT.Services
                                     SheetName = sheetName,
                                     Row = row,
                                     Column = column + counter,
-                                    Value = reader[i].ToString()
+                                    Value = reader[i].ToString() ?? ""
                                 };
                                 counter++;
                                 data.Add(item);
@@ -105,7 +105,9 @@ namespace MT.Services
                 {
                     var i = data.Where(x => x.SheetName == item.SheetName).Max(x => x.Row);
                     var j = data.Where(x => x.SheetName == item.SheetName).Max(x => x.Column);
-                    result[item.SheetName] = new string[i, j];
+                    var sheet = new string[i, j];
+                    ReplaceNullWithEmptyString(sheet);
+                    result[item.SheetName] = sheet;
                 }
 
                 // Set the values at the specified coordinate and subsequent columns
@@ -124,6 +126,20 @@ namespace MT.Services
             }
 
             return result;
+        }
+
+        public static void ReplaceNullWithEmptyString(string[,] array)
+        {
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(1); j++)
+                {
+                    if (array[i, j] == null)
+                    {
+                        array[i, j] = "";
+                    }
+                }
+            }
         }
 
         // Class representing a data item with coordinates and values

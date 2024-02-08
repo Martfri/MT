@@ -5,6 +5,7 @@ using Table = MT.Models.Table;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using MT.Models;
+using System.Security.Cryptography.Xml;
 
 
 namespace MT.Services
@@ -122,59 +123,73 @@ namespace MT.Services
             }
         }
 
-        
+        public List<Tableinfo> GetTableInfoFromDatabase()
+        {
+            List<Tableinfo> tableInfoList = new List<Tableinfo>();
 
-        //public void UpdateJsonBatch(string key, string[] newRow, int row)
-        //{
-        //    string connectionString = GetConnectionString("Test"); // Replace with your connection string
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT * FROM Metadata";
 
-        //    using (SqlConnection connection = new SqlConnection(connectionString))
-        //    {
-        //        connection.Open();
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
 
-        //        // Start a transaction for batch updates
-        //        using (SqlTransaction transaction = connection.BeginTransaction())
-        //        {
-        //            try
-        //            {
+                    while (reader.Read())
+                    {
+                        Tableinfo tableInfo = new Tableinfo();
+                        tableInfo.name = Convert.ToString(reader["TableName"]);
+                        tableInfo.rowCount = Convert.ToInt32(reader["RowCount"]);
+                        tableInfo.columnCount = Convert.ToInt32(reader["ColumnCount"]);
+                        tableInfoList.Add(tableInfo);
+                    }
 
+                    reader.Close();
+                }
+            }
 
-        //                // Construct your SQL update statement with parameters
-        //                string updateSql = "UPDATE ExcelConfig SET Config = JSON_MODIFY(Config, @JsonPath, JSON_QUERY(@NewJsonValue)) WHERE Id = (SELECT MAX(Id) FROM ExcelConfig);";
-        //                // Clean the data by removing backslashes from string elements
+            return tableInfoList;
+        }
 
+        public void DeleteRowFromMetadata(string tableName)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "DELETE FROM Metadata WHERE TableName = @TableName";
 
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@TableName", tableName);
 
-        //                string newRowJson = JsonConvert.SerializeObject(newRow, Formatting.None);
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
 
-        //                using (SqlCommand command = new SqlCommand(updateSql, connection, transaction))
-        //                {
-        //                    // Set parameters for the update statement
-        //                    command.Parameters.AddWithValue("@JsonPath", $@"$.""{key}""[{row}]");
-        //                    command.Parameters.AddWithValue("@NewJsonValue", newRowJson);
+        public void DeleteTable(string tableName)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    connection.Open();
 
-        //                    // Execute the update statement
-        //                    int rowsAffected = command.ExecuteNonQuery();
-        //                    Console.WriteLine($"Rows affected: {rowsAffected}");
-        //                }
+                    string sql = $"DROP TABLE {tableName}";
 
-
-        //                // Commit the transaction after all updates succeed
-        //                transaction.Commit();
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                // Handle any exceptions and roll back the transaction if needed
-        //                Console.WriteLine($"Error: {ex.Message}");
-        //                transaction.Rollback();
-        //            }
-
-        //        }
-        //    }
-        //}
-
-        //private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1); // Allow only one concurrent task
-          
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                        Console.WriteLine($"Table '{tableName}' deleted successfully.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error deleting table '{tableName}': {ex.Message}");
+                }
+            }
+        }
 
         public List<Formula> GetFormula()
         {
@@ -202,6 +217,38 @@ namespace MT.Services
                         }
                     }
                     return formulas;
+                }
+            }
+        }
+
+        public void DeleteFormula(string name)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    connection.Open();
+
+                    string sql = "DELETE FROM Formulas WHERE Name = @Name";
+
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@Name", name);
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            Console.WriteLine($"Row with name '{name}' deleted successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"No row with name '{name}' found in the table.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error deleting row with name '{name}': {ex.Message}");
                 }
             }
         }
@@ -344,7 +391,9 @@ namespace MT.Services
             sb.AppendLine("BEGIN");
             sb.AppendLine($"CREATE TABLE Metadata (");
             sb.AppendLine($"[TableName]  NVARCHAR(MAX),");
-            sb.AppendLine($"[SheetName]  NVARCHAR(MAX)");
+            sb.AppendLine($"[SheetName]  NVARCHAR(MAX),");
+            sb.AppendLine($"[ColumnCount]  INT,");
+            sb.AppendLine($"[RowCount]  INT");
             sb.AppendLine(")");
             sb.AppendLine("END");
             ExecCommand(sb.ToString());
@@ -356,12 +405,16 @@ namespace MT.Services
             DataTable tbl = new DataTable();
             tbl.Columns.Add(new DataColumn("TableName"));
             tbl.Columns.Add(new DataColumn("SheetName"));
+            tbl.Columns.Add(new DataColumn("ColumnCount"));
+            tbl.Columns.Add(new DataColumn("RowCount"));
 
             foreach (Title table in tables)
             {
                 DataRow dr = tbl.NewRow();
                 dr["TableName"] = table.name;
                 dr["SheetName"] = table.sheet;
+                dr["ColumnCount"] = table.columns.Count;
+                dr["RowCount"] = table.columns.LastOrDefault()?.entries?.Count ?? 0;
                 tbl.Rows.Add(dr);
                 dr.AcceptChanges();
             }
@@ -376,6 +429,8 @@ namespace MT.Services
                     objbulk.DestinationTableName = "Metadata";
                     objbulk.ColumnMappings.Add("SheetName", "SheetName");
                     objbulk.ColumnMappings.Add("TableName", "TableName");
+                    objbulk.ColumnMappings.Add("ColumnCount", "ColumnCount");
+                    objbulk.ColumnMappings.Add("RowCount", "RowCount");
 
                     try
                     {
@@ -504,7 +559,7 @@ namespace MT.Services
 
         public string CheckDataType(int i, int j)
         {
-            Type type = table.values[i, j].GetType();
+            Type type = table?.values[i, j]?.GetType();
 
             if (type == typeof(int)) return "INT";
             else if (type == typeof(double)) return "FLOAT(53)";

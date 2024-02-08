@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Jering.Javascript.NodeJS;
 using MT.Services;
+using MT.Models;
 
 namespace MT.Controllers
 {
@@ -17,7 +18,7 @@ namespace MT.Controllers
         }
 
         [HttpGet]
-        public IActionResult CalculateFormulas()
+        public async Task<IActionResult> CalculateFormulas()
         {
             var headlessSpreadsheetService = new HeadlessSpreadsheetService();
 
@@ -26,8 +27,9 @@ namespace MT.Controllers
 
             var deserialized = JsonConvert.DeserializeObject<Dictionary<string, string[][]>>(internalRepresentation);
 
-            var result = _nodeJSService.InvokeFromFileAsync(@".\wwwroot\js\HyperFormulaScript.js", "CalculateFormula", args: new object[] { deserialized });
+            _nodeJSService.InvokeFromFileAsync(@".\wwwroot\js\HyperFormulaScript.js", "CalculateFormula", args: new object[] { deserialized });
 
+            Thread.Sleep(1500);
             var formulasfromdb = new DbService().GetFormula();
             return View("Formulas", formulasfromdb);
         }   
@@ -37,6 +39,21 @@ namespace MT.Controllers
         {
             var formulasfromdb = new DbService().GetFormula();
             return View(formulasfromdb);
-        }        
+        }
+
+        // Delete a formula from the preview 
+        [HttpGet]
+        public IActionResult Delete(string name)
+        {
+            try
+            {
+                _dbService.DeleteFormula(name);
+            }
+            catch (Exception)
+            {
+            }
+            var formulasfromdb = new DbService().GetFormula();
+            return View("Formulas", formulasfromdb);
+        }
     }
 }

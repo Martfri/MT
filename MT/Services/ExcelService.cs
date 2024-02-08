@@ -38,11 +38,13 @@ namespace MT.Services
             var table = TableDetection();
             MapToTable(table);
             TableInfo(table);
+            new DbService().CreateMetadataTable(table);
+
 
             foreach (Table finalTable in finalTables)
             {
                 var dbService = new DbService(finalTable);
-                dbService.CreateDb("Test");
+                //dbService.CreateDb("Test");
                 dbService.CreateTable();
                 dbService.TableInsert();
             }
@@ -113,7 +115,6 @@ namespace MT.Services
                 }
             }
 
-            db.CreateMetadataTable(tables);
             return tables;
         }
 
