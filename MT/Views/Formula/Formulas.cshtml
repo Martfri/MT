@@ -12,7 +12,7 @@
         <table id="edit" class="table table-striped table-sm">
             <thead>
                 <tr>
-                    <th scope="col">Formula name</th>
+                    <th scope="col">Formula context</th>
                     <th scope="col">Result</th>
 
 
@@ -31,15 +31,15 @@
 
     @foreach (Formula f in Model)
     {
-                        @if(f.name != null)
+                        @if(f.context != null)
 
                         {
                         <tr>
 
-                            <td> @f.name</td>
+                            <td> @f.context</td>
                             <td> @f.result</td>
                             <td>
-                                @Html.ActionLink("Delete", "Delete", new {name = f.name })
+                                @Html.ActionLink("Delete", "Delete", new {name = f.context })
                             </td>
 
                         </tr>

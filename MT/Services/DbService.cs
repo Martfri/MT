@@ -53,7 +53,7 @@ namespace MT.Services
 
                 //dr["Id"] = 1;
                 dr["Formula"] = formula.formula;
-                dr["Name"] = formula.name;
+                dr["Name"] = formula.context;
                 dr["Result"] = formula.result;
                 dr["Row"] = formula.i;
                 tbl.Rows.Add(dr);
@@ -209,7 +209,7 @@ namespace MT.Services
                         while (reader.Read())
                         {
                             Formula formula = new Formula();
-                            formula.name = reader["Name"].ToString();
+                            formula.context = reader["Name"].ToString();
                             formula.formula = reader["Formula"].ToString();
                             formula.result = reader["Result"].ToString();
                             formula.i = reader["Row"] != DBNull.Value ? (int)reader["Row"] : 0;
@@ -575,9 +575,15 @@ namespace MT.Services
 
             for (int colIdx = 0; colIdx < table.columnCount; colIdx++)
             {
-                Type type = table.values[1, colIdx].GetType();
-                tbl.Columns.Add(new DataColumn(table.columns[colIdx], type));
-
+                if (table.values[1, colIdx] == null)
+                {
+                   tbl.Columns.Add(new DataColumn(table.columns[colIdx]));
+                }
+                else
+                {
+                   Type type = table.values[1, colIdx].GetType();
+                   tbl.Columns.Add(new DataColumn(table.columns[colIdx], type));
+                }
             }
             tbl.Columns.Add(new DataColumn("datasource"));
 
@@ -585,8 +591,6 @@ namespace MT.Services
             for (int i = rowCount.Value - 1; i >= 0; i--)
             {
                 DataRow dr = tbl.NewRow();
-
-
                 var counter = 0;
 
                 for (int j = 0; j < table.columnCount; j++)

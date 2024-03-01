@@ -9,15 +9,15 @@ namespace MT.Services
     {
         List<Table> FFinalTables { get; set; }
         List<Formula> formulas { get; set; }
-        List<Entry> dataEntries { get; set; }
+        List<DataEntry> dataEntries { get; set; }
     }
 
-    class ExcelService
+    public class ExcelService
     {
         public ExcelWorksheets wss;
         public List<Title> tables = new List<Title>();
         private List<Column> columns = new List<Column>();
-        public List<Entry> dataEntries = new List<Entry>();
+        public List<DataEntry> dataEntries = new List<DataEntry>();
         private int tableCounter = 0;
         private int nullCounter = 0;
         public List<Table> finalTables { get; set; }
@@ -33,6 +33,9 @@ namespace MT.Services
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             ExcelPackage excelPackage = new ExcelPackage(filePath);
+
+            DeleteFile();
+
             wss = excelPackage.Workbook.Worksheets;
 
             var table = TableDetection();
@@ -47,6 +50,22 @@ namespace MT.Services
                 //dbService.CreateDb("Test");
                 dbService.CreateTable();
                 dbService.TableInsert();
+            }
+        }
+
+        public void DeleteFile()
+        {
+            try
+            {
+                // Check if the file exists before attempting to delete it
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
 
@@ -74,7 +93,6 @@ namespace MT.Services
                     rowCount = 0;
                 }
 
-
                 if (ws.Name == "Formulas")
                 {
                     List<Formula> formulas = new List<Formula>();
@@ -84,7 +102,7 @@ namespace MT.Services
                         var newFormula = new Formula();
                         newFormula.formula = ws.Cells[row, 1].Formula ?? null;
                         newFormula.result = ws.Cells[row, 1].Value?.ToString() ?? null;
-                        newFormula.name = ws.Cells[row, 2].Value?.ToString();
+                        newFormula.context = ws.Cells[row, 2].Value?.ToString();
                         newFormula.i = row - 1;
                         formulas.Add(newFormula);
                     }
@@ -147,7 +165,7 @@ namespace MT.Services
                 // Add new entry (N/A)
                 if (ews.Cells[i, j].Value is "n/a" or "N/A")
                 {
-                    var newEntry = new Entry();
+                    var newEntry = new DataEntry();
                     newEntry.i = i;
                     newEntry.j = j;
                     newEntry.value = null;
@@ -161,7 +179,7 @@ namespace MT.Services
                     Dictionary<string, int[]> dic = new Dictionary<string, int[]>();
                     int[] myArray = new int[2] { i, j };
                     dic.Add(ews.Name, myArray);
-                    var newEntry = new Entry();
+                    var newEntry = new DataEntry();
                     newEntry.datasource = dic;
                     newEntry.i = i;
                     newEntry.j = j;

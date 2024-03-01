@@ -9,27 +9,27 @@ namespace MT.Controllers
     public class FormulaController : Controller
     {
         private readonly DbService _dbService;
+        private readonly HeadlessSpreadsheetService _headlessSpreadsheetService;
         private readonly INodeJSService _nodeJSService;
 
-        public FormulaController(DbService dbService, INodeJSService nodeJSService)
+        public FormulaController(DbService dbService, INodeJSService nodeJSService, HeadlessSpreadsheetService headlessSpreadsheetService)
         {
             _nodeJSService = nodeJSService;
             _dbService = dbService;
+            _headlessSpreadsheetService = headlessSpreadsheetService;
         }
 
         [HttpGet]
         public async Task<IActionResult> CalculateFormulas()
         {
-            var headlessSpreadsheetService = new HeadlessSpreadsheetService();
-
-            headlessSpreadsheetService.Process();
+            _headlessSpreadsheetService.Process();
             var internalRepresentation = _dbService.GetJsonConfig();
 
             var deserialized = JsonConvert.DeserializeObject<Dictionary<string, string[][]>>(internalRepresentation);
 
             _nodeJSService.InvokeFromFileAsync(@".\wwwroot\js\HyperFormulaScript.js", "CalculateFormula", args: new object[] { deserialized });
 
-            Thread.Sleep(1500);
+            Thread.Sleep(1700);
             var formulasfromdb = new DbService().GetFormula();
             return View("Formulas", formulasfromdb);
         }   

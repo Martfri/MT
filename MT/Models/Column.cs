@@ -6,6 +6,6 @@
         public int count { get; set; }
         public int tableCount { get; set; }
 
-        public List<Entry> entries { get; set; }
+        public List<DataEntry> entries { get; set; }
     }
 }

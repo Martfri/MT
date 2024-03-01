@@ -15,13 +15,14 @@ namespace MT.Controllers
     {
         // Path where Excel doucment is temporarily stored
         private static string filePath = ".\\wwwroot\\Uploads\\Test.xlsx";
-        private ExcelService service;
+        private ExcelService _spreadsheetService;
         private readonly DbService _dbService;
 
 
-        public HomeController(DbService dbService)
+        public HomeController(DbService dbService, ExcelService excelService)
         {
             _dbService = dbService;
+            _spreadsheetService = excelService;
         }
       
       
@@ -87,10 +88,7 @@ namespace MT.Controllers
                 await FormFile.CopyToAsync(stream);
             }
 
-            // Intantiate Excel Service and get tables from Excel
-            service = new ExcelService();
-
-            var formulasheet = service.wss.Where(ws => ws.Name == "Formulas").FirstOrDefault();
+            var formulasheet = new ExcelService().wss.Where(ws => ws.Name == "Formulas").FirstOrDefault();
 
             if (formulasheet == null)
             {
@@ -104,7 +102,7 @@ namespace MT.Controllers
                 ViewBag.Message = "Uploaded document does not have a valid format of the formulas sheet";
                 return View("Index");
             }
-            var tableInfos = service.tableInfos;
+            var tableInfos = _spreadsheetService.tableInfos;
             
             TempData.Put("tables", tableInfos);
             TempData.Keep("tables");

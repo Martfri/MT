@@ -115,12 +115,13 @@ namespace MT.Services
             }
 
             var formulas = new DbService().GetFormula();
+            if (!formulas.Any()) return result;
             var rowMax = formulas.Max(x => x.i);
             result["Formulas"] = new string[rowMax, 2];
 
             foreach (var formula in formulas)
             {
-                result["Formulas"][formula.i - 1, 1] = formula.name;
+                result["Formulas"][formula.i - 1, 1] = formula.context;
                 if (string.IsNullOrEmpty(formula.formula)) result["Formulas"][formula.i - 1, 0] = formula.result;
                 else result["Formulas"][formula.i - 1, 0] = "=" + formula.formula;
             }

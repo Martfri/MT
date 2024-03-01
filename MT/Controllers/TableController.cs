@@ -31,7 +31,7 @@ namespace MT.Controllers
         [HttpGet]
         public IActionResult Preview(string name)
         {
-            var table = new DbService().RetrieveTable(name);
+            var table = _dbService.RetrieveTable(name);
             return View(table);
         }
 
@@ -39,7 +39,7 @@ namespace MT.Controllers
         [HttpGet]
         public IActionResult Edit(int name, string tablename)
         {
-            var table = new DbService().RetrieveTable(tablename, name);
+            var table = _dbService.RetrieveTable(tablename, name);
             Dictionary<string, Type> names = new Dictionary<string, Type>();
 
             foreach (DataColumn c in table.Columns)
@@ -54,7 +54,7 @@ namespace MT.Controllers
         [HttpGet]
         public IActionResult Insert(string tablename)
         {
-            var table = new DbService().RetrieveTable(tablename);
+            var table = _dbService.RetrieveTable(tablename);
             Dictionary<string, Type> names = new Dictionary<string, Type>();
 
             foreach (DataColumn c in table.Columns)
@@ -264,10 +264,10 @@ namespace MT.Controllers
 
         public class Foo
         {
-            public string Spieler { get; set; }
+            public object Spieler { get; set; }
             public string tablename { get; set; }
-            public string Position { get; set; }
-            public double Monatsgehalt { get; set; }
+            public object Position { get; set; }
+            public object Monatsgehalt { get; set; }
 
         }
     }

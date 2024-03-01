@@ -1,6 +1,6 @@
 ﻿namespace MT.Models
 {
-    public class Entry
+    public class DataEntry
     {
         public object? value { get; set; }
         public int i { get; set; }
